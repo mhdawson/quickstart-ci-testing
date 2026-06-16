@@ -47,7 +47,7 @@ runs:
         DEPLOY_COMMAND: ${{ inputs.deploy_command }}
         NAMESPACE: ${{ inputs.namespace }}
       run: |
-        eval "$DEPLOY_COMMAND" NAMESPACE="$NAMESPACE"
+        eval "$DEPLOY_COMMAND"
 
     - name: Verify deployment
       shell: bash
