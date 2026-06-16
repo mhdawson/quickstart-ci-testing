@@ -26,8 +26,8 @@ jobs:
           PROD_TOKEN: ${{ secrets.PROD_TOKEN }}
           PROD_SERVER: ${{ secrets.PROD_SERVER }}
           MAAS_API_KEY: ${{ secrets.LLM_API_TOKEN_INFERENCE}}
-          MAAS_ENDPOINT: ${{ secrets.LLM_URL_INFERENCE }}
-          MAAS_MODEL_ID: ${{ secrets.LLM_ID_INFERENCE }}
+          MAAS_ENDPOINT: ${{ vars.LLM_URL_INFERENCE }}
+          MAAS_MODEL_ID: ${{ vars.LLM_ID_INFERENCE }}
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -44,8 +44,8 @@ jobs:
           test_command: "pytest tests/integration/llamastack/ -v"
         env:
           MAAS_API_KEY: ${{ secrets.LLM_API_TOKEN_INFERENCE }}
-          MAAS_ENDPOINT: ${{ secrets.LLM_URL_INFERENCE }}
-          MAAS_MODEL_ID: ${{ secrets.LLM_ID_INFERENCE }}
+          MAAS_ENDPOINT: ${{ vars.LLM_URL_INFERENCE }}
+          MAAS_MODEL_ID: ${{ vars.LLM_ID_INFERENCE }}
 
       - uses: ./.github/actions/cleanup
         if: always()

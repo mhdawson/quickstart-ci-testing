@@ -25,3 +25,10 @@ runs:
         CLEANUP_COMMAND: ${{ inputs.cleanup_command }}
         NAMESPACE: ${{ inputs.namespace }}
       run: eval "$CLEANUP_COMMAND"
+
+    - name: Delete completed pods
+      shell: bash
+      continue-on-error: true
+      env:
+        NAMESPACE: ${{ inputs.namespace }}
+      run: oc delete pods --field-selector=status.phase==Succeeded -n "$NAMESPACE"
