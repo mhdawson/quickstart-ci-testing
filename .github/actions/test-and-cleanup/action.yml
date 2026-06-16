@@ -1,0 +1,54 @@
+name: Test and Cleanup Quickstart
+description: Run tests and clean up the deployment (cleanup runs always)
+
+inputs:
+  test_command:
+    description: Command to run tests
+    required: true
+  test_working_dir:
+    description: Directory for tests
+    required: false
+    default: ./quickstart
+  pre_test_command:
+    description: Setup command to run before tests
+    required: false
+    default: ''
+  test_timeout:
+    description: Test timeout in minutes
+    required: false
+    default: '30'
+  cleanup_command:
+    description: Teardown command (runs always)
+    required: true
+  namespace:
+    description: Kubernetes namespace (passed to cleanup command)
+    required: false
+    default: quickstart-ci-project-1
+
+runs:
+  using: composite
+  steps:
+    - name: Pre-test setup
+      if: inputs.pre_test_command != ''
+      shell: bash
+      working-directory: ./quickstart
+      env:
+        PRE_TEST_COMMAND: ${{ inputs.pre_test_command }}
+      run: eval "$PRE_TEST_COMMAND"
+
+    - name: Run tests
+      uses: ./.github/actions/run-tests
+      with:
+        test_command: ${{ inputs.test_command }}
+        working_dir: ${{ inputs.test_working_dir }}
+        timeout_minutes: ${{ inputs.test_timeout }}
+
+    - name: Cleanup
+      if: always()
+      shell: bash
+      working-directory: ./quickstart
+      continue-on-error: true
+      env:
+        CLEANUP_COMMAND: ${{ inputs.cleanup_command }}
+        NAMESPACE: ${{ inputs.namespace }}
+      run: eval "$CLEANUP_COMMAND" NAMESPACE="$NAMESPACE"

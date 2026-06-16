@@ -1,0 +1,90 @@
+name: Setup and Deploy Quickstart
+description: Prepare runner, clone quickstart repo, and deploy to OpenShift or KinD
+
+inputs:
+  repo_url:
+    description: GitHub repo URL to clone
+    required: true
+  ref:
+    description: Branch/tag/SHA to check out
+    required: false
+    default: main
+  submodules:
+    description: Whether to clone submodules
+    required: false
+    default: 'false'
+  use_kind:
+    description: Use KinD instead of OpenShift
+    required: false
+    default: 'false'
+  deploy_command:
+    description: Command to deploy the application
+    required: true
+  namespace:
+    description: Kubernetes namespace
+    required: false
+    default: quickstart-ci-project-1
+  setup_commands:
+    description: Pre-deploy setup commands
+    required: false
+    default: ''
+  deploy_timeout:
+    description: Deploy timeout in minutes
+    required: false
+    default: '15'
+  kind_pre_deploy_command:
+    description: Pre-deploy setup for KinD
+    required: false
+    default: ''
+  kind_deploy_command:
+    description: Deploy command for KinD
+    required: false
+    default: ''
+  kind_extra_deploy_args:
+    description: Extra args for KinD deploy
+    required: false
+    default: ''
+
+runs:
+  using: composite
+  steps:
+    - name: Prepare Runner
+      uses: ./.github/actions/prepare-runner
+
+    - name: Validate OpenShift secrets
+      if: inputs.use_kind != 'true'
+      shell: bash
+      run: |
+        if [ -z "${PROD_TOKEN}" ]; then
+          echo "::error::PROD_TOKEN secret is missing or empty."
+          exit 1
+        fi
+        if [ -z "${PROD_SERVER}" ]; then
+          echo "::error::PROD_SERVER secret is missing or empty."
+          exit 1
+        fi
+
+    - name: Clone quickstart
+      uses: ./.github/actions/clone-quickstart
+      with:
+        repo_url: ${{ inputs.repo_url }}
+        ref: ${{ inputs.ref }}
+        submodules: ${{ inputs.submodules }}
+
+    - name: Deploy to OpenShift
+      if: inputs.use_kind != 'true'
+      uses: ./.github/actions/deploy-quickstart
+      with:
+        deploy_command: ${{ inputs.deploy_command }}
+        namespace: ${{ inputs.namespace }}
+        setup_commands: ${{ inputs.setup_commands }}
+        timeout_minutes: ${{ inputs.deploy_timeout }}
+
+    - name: Deploy via KinD
+      if: inputs.use_kind == 'true'
+      uses: ./.github/actions/kind
+      with:
+        namespace: ${{ inputs.namespace }}
+        pre_deploy_command: ${{ inputs.kind_pre_deploy_command }}
+        deploy_command: ${{ inputs.kind_deploy_command }}
+        extra_deploy_args: ${{ inputs.kind_extra_deploy_args }}

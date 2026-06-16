@@ -1,0 +1,52 @@
+name: Clone Quickstart
+description: Clone a quickstart repository at a specified ref
+
+inputs:
+  repo_url:
+    description: Full GitHub URL of the quickstart repo
+    required: true
+  ref:
+    description: Branch, tag, or SHA to check out
+    required: false
+    default: main
+  checkout_path:
+    description: Directory to clone into
+    required: false
+    default: ./quickstart
+  submodules:
+    description: Whether to clone submodules (true/false)
+    required: false
+    default: 'false'
+
+runs:
+  using: composite
+  steps:
+    - name: Clone quickstart repository
+      shell: bash
+      env:
+        REPO_URL: ${{ inputs.repo_url }}
+        REF: ${{ inputs.ref }}
+        CHECKOUT_PATH: ${{ inputs.checkout_path }}
+        SUBMODULES: ${{ inputs.submodules }}
+      run: |
+        CLONE_ARGS="--depth 1 --branch $REF"
+        if [ "$SUBMODULES" = "true" ]; then
+          CLONE_ARGS="$CLONE_ARGS --recurse-submodules"
+        fi
+
+        git clone $CLONE_ARGS "$REPO_URL" "$CHECKOUT_PATH"
+
+    - name: Print clone info
+      shell: bash
+      working-directory: ${{ inputs.checkout_path }}
+      env:
+        REPO_URL: ${{ inputs.repo_url }}
+        REF: ${{ inputs.ref }}
+        CHECKOUT_PATH: ${{ inputs.checkout_path }}
+      run: |
+        echo "=== Clone Info ==="
+        echo "Repository: $REPO_URL"
+        echo "Ref: $REF"
+        echo "Commit SHA: $(git rev-parse HEAD)"
+        echo "Branch: $(git branch --show-current || echo 'detached')"
+        echo "Clone path: $CHECKOUT_PATH"

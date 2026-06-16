@@ -1,0 +1,39 @@
+name: Test - RAG
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: quickstart-ci-tests
+  cancel-in-progress: false
+
+jobs:
+  test:
+    name: RAG
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: ./.github/actions/setup-and-deploy
+        with:
+          repo_url: https://github.com/rh-ai-quickstart/RAG
+          deploy_command: "helm install rag deploy/helm/rag --namespace $NAMESPACE"
+          setup_commands: |
+            helm repo add rag-charts https://rh-ai-quickstart.github.io/ai-architecture-charts
+            helm repo update
+            cd deploy/helm/rag && helm dependency build
+        env:
+          PROD_TOKEN: ${{ secrets.PROD_TOKEN }}
+          PROD_SERVER: ${{ secrets.PROD_SERVER }}
+          MAAS_API_KEY: ${{ secrets.LLM_API_TOKEN_INFERENCE}}
+          MAAS_ENDPOINT: ${{ secrets.LLM_URL_INFERENCE }}
+          MAAS_MODEL_ID: ${{ secrets.LLM_ID_INFERENCE }}
+
+      - uses: ./.github/actions/test-and-cleanup
+        with:
+          test_command: "pytest tests/integration/llamastack/ -v"
+          cleanup_command: "helm uninstall rag"
+        env:
+          MAAS_API_KEY: ${{ secrets.LLM_API_TOKEN_INFERENCE}}
+          MAAS_ENDPOINT: ${{ secrets.LLM_URL_INFERENCE }}
+          MAAS_MODEL_ID: ${{ secrets.LLM_ID_INFERENCE }}

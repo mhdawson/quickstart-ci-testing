@@ -1,0 +1,63 @@
+name: Deploy Quickstart to OpenShift
+description: Deploy a quickstart to an OpenShift cluster using oc login and a configurable deploy command
+
+inputs:
+  deploy_command:
+    description: Shell command to deploy (e.g. "make helm-install-test")
+    required: true
+  working_dir:
+    description: Directory to run commands in
+    required: false
+    default: ./quickstart
+  namespace:
+    description: OpenShift namespace/project to deploy into
+    required: false
+    default: quickstart-ci-project-1
+  setup_commands:
+    description: Pre-deploy setup commands (newline-separated)
+    required: false
+    default: ''
+  timeout_minutes:
+    description: Deployment timeout in minutes
+    required: false
+    default: '15'
+
+runs:
+  using: composite
+  steps:
+    - name: Install oc CLI
+      shell: bash
+      run: |
+        curl -sL https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable/openshift-client-linux.tar.gz | tar xzf - -C /usr/local/bin oc kubectl
+
+    - name: Log into OpenShift cluster
+      shell: bash
+      run: |
+        oc login --token="$PROD_TOKEN" --server="$PROD_SERVER"
+
+    - name: Run setup commands
+      if: inputs.setup_commands != ''
+      shell: bash
+      working-directory: ${{ inputs.working_dir }}
+      env:
+        SETUP_COMMANDS: ${{ inputs.setup_commands }}
+      run: |
+        eval "$SETUP_COMMANDS"
+
+    - name: Deploy quickstart
+      shell: bash
+      working-directory: ${{ inputs.working_dir }}
+      timeout-minutes: ${{ fromJSON(inputs.timeout_minutes) }}
+      env:
+        DEPLOY_COMMAND: ${{ inputs.deploy_command }}
+        NAMESPACE: ${{ inputs.namespace }}
+      run: |
+        eval "$DEPLOY_COMMAND" NAMESPACE="$NAMESPACE"
+
+    - name: Verify deployment
+      shell: bash
+      env:
+        NAMESPACE: ${{ inputs.namespace }}
+      run: |
+        echo "=== Pod Status ==="
+        oc get pods -n "$NAMESPACE"

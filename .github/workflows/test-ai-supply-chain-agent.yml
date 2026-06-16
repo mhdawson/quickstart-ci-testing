@@ -1,0 +1,29 @@
+name: Test - AI Supply Chain Agent
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: quickstart-ci-tests
+  cancel-in-progress: false
+
+jobs:
+  test:
+    name: ai-supply-chain-agent
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: ./.github/actions/setup-and-deploy
+        with:
+          repo_url: https://github.com/rh-ai-quickstart/ai-supply-chain-agent
+          deploy_command: "make helm-install"
+        env:
+          PROD_TOKEN: ${{ secrets.PROD_TOKEN }}
+          PROD_SERVER: ${{ secrets.PROD_SERVER }}
+
+      - uses: ./.github/actions/test-and-cleanup
+        with:
+          pre_test_command: "make e2e-ui-install"
+          test_command: "make kind-verify"
+          cleanup_command: "make helm-uninstall"
