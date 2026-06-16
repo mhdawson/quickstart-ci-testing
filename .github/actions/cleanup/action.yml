@@ -31,4 +31,4 @@ runs:
       continue-on-error: true
       env:
         NAMESPACE: ${{ inputs.namespace }}
-      run: oc delete all,pvc --all -n "$NAMESPACE"
+      run: oc delete pods,deployments,replicasets,statefulsets,services,jobs,cronjobs,daemonsets,pvc --all -n "$NAMESPACE"
