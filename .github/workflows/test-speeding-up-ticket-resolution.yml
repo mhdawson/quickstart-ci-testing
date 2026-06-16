@@ -15,6 +15,7 @@ jobs:
       - uses: actions/checkout@v5
 
       - uses: ./.github/actions/setup-and-deploy
+        timeout-minutes: 15
         with:
           repo_url: https://github.com/rh-ai-quickstart/speeding-up-ticket-resolution
           submodules: 'true'
@@ -27,12 +28,17 @@ jobs:
           LLM_URL: ${{ vars.LLM_URL_INFERENCE }}
           LLM_API_TOKEN: ${{ secrets.LLM_API_TOKEN_INFERENCE }}
 
-      - uses: ./.github/actions/test-and-cleanup
+      - uses: ./.github/actions/run-quickstart-tests
+        timeout-minutes: 30
         with:
           test_command: "make test-short-ticket-laptop-refresh"
-          cleanup_command: "make uninstall"
         env:
           LLM: ${{ vars.LLM_INFERENCE }}
           LLM_ID: ${{ vars.LLM_ID_INFERENCE }}
           LLM_URL: ${{ vars.LLM_URL_INFERENCE }}
           LLM_API_TOKEN: ${{ secrets.LLM_API_TOKEN_INFERENCE }}
+
+      - uses: ./.github/actions/cleanup
+        if: always()
+        with:
+          cleanup_command: "make uninstall NAMESPACE=$NAMESPACE"

@@ -17,10 +17,6 @@ inputs:
     description: Pre-deploy setup commands (newline-separated)
     required: false
     default: ''
-  timeout_minutes:
-    description: Deployment timeout in minutes
-    required: false
-    default: '15'
 
 runs:
   using: composite
@@ -47,7 +43,6 @@ runs:
     - name: Deploy quickstart
       shell: bash
       working-directory: ${{ inputs.working_dir }}
-      timeout-minutes: ${{ fromJSON(inputs.timeout_minutes) }}
       env:
         DEPLOY_COMMAND: ${{ inputs.deploy_command }}
         NAMESPACE: ${{ inputs.namespace }}

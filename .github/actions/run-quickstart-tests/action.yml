@@ -1,0 +1,32 @@
+name: Run Tests
+description: Run pre-test setup and tests
+
+inputs:
+  test_command:
+    description: Command to run tests
+    required: true
+  test_working_dir:
+    description: Directory for tests
+    required: false
+    default: ./quickstart
+  pre_test_command:
+    description: Setup command to run before tests
+    required: false
+    default: ''
+
+runs:
+  using: composite
+  steps:
+    - name: Pre-test setup
+      if: inputs.pre_test_command != ''
+      shell: bash
+      working-directory: ./quickstart
+      env:
+        PRE_TEST_COMMAND: ${{ inputs.pre_test_command }}
+      run: eval "$PRE_TEST_COMMAND"
+
+    - name: Run tests
+      uses: ./.github/actions/run-tests
+      with:
+        test_command: ${{ inputs.test_command }}
+        working_dir: ${{ inputs.test_working_dir }}

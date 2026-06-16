@@ -8,7 +8,8 @@ CI system that clones, deploys, and tests quickstarts from the [rh-ai-quickstart
 .github/
 ├── actions/
 │   ├── setup-and-deploy/   # Prepare runner, clone repo, deploy (OpenShift or KinD)
-│   ├── test-and-cleanup/   # Run tests and cleanup (cleanup runs always)
+│   ├── run-quickstart-tests/ # Run pre-test setup and tests
+│   ├── cleanup/              # Tear down deployment (runs always)
 │   ├── prepare-runner/     # Free disk space on ubuntu-latest runners
 │   ├── kind/               # KinD cluster lifecycle (opt-in)
 │   ├── clone-quickstart/   # Clone a quickstart repo
@@ -65,10 +66,14 @@ jobs:
           PROD_SERVER: ${{ secrets.PROD_SERVER }}
           DEPLOY_SECRET: ${{ secrets.DEPLOY_SECRET }}
 
-      - uses: ./.github/actions/test-and-cleanup
+      - uses: ./.github/actions/run-quickstart-tests
         with:
           test_command: "make test"
-          cleanup_command: "make helm-uninstall"
         env:
           TEST_SECRET: ${{ secrets.TEST_SECRET }}
+
+      - uses: ./.github/actions/cleanup
+        if: always()
+        with:
+          cleanup_command: "make helm-uninstall NAMESPACE=$NAMESPACE"
 ```

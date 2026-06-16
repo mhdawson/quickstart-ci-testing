@@ -9,10 +9,6 @@ inputs:
     description: Directory to run tests in
     required: false
     default: ./quickstart
-  timeout_minutes:
-    description: Test timeout in minutes
-    required: false
-    default: '30'
 
 runs:
   using: composite
@@ -20,7 +16,6 @@ runs:
     - name: Run tests
       shell: bash
       working-directory: ${{ inputs.working_dir }}
-      timeout-minutes: ${{ fromJSON(inputs.timeout_minutes) }}
       env:
         TEST_COMMAND: ${{ inputs.test_command }}
       run: |

@@ -1,0 +1,27 @@
+name: Cleanup Deployment
+description: Run cleanup command to tear down a deployed quickstart
+
+inputs:
+  cleanup_command:
+    description: Command to tear down the deployment
+    required: true
+  namespace:
+    description: Kubernetes namespace
+    required: false
+    default: quickstart-ci-project-1
+  working_dir:
+    description: Directory to run cleanup in
+    required: false
+    default: ./quickstart
+
+runs:
+  using: composite
+  steps:
+    - name: Cleanup deployment
+      shell: bash
+      working-directory: ${{ inputs.working_dir }}
+      continue-on-error: true
+      env:
+        CLEANUP_COMMAND: ${{ inputs.cleanup_command }}
+        NAMESPACE: ${{ inputs.namespace }}
+      run: eval "$CLEANUP_COMMAND"

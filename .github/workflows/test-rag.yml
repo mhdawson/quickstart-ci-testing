@@ -29,11 +29,15 @@ jobs:
           MAAS_ENDPOINT: ${{ secrets.LLM_URL_INFERENCE }}
           MAAS_MODEL_ID: ${{ secrets.LLM_ID_INFERENCE }}
 
-      - uses: ./.github/actions/test-and-cleanup
+      - uses: ./.github/actions/run-quickstart-tests
         with:
           test_command: "pytest tests/integration/llamastack/ -v"
-          cleanup_command: "helm uninstall rag"
         env:
-          MAAS_API_KEY: ${{ secrets.LLM_API_TOKEN_INFERENCE}}
+          MAAS_API_KEY: ${{ secrets.LLM_API_TOKEN_INFERENCE }}
           MAAS_ENDPOINT: ${{ secrets.LLM_URL_INFERENCE }}
           MAAS_MODEL_ID: ${{ secrets.LLM_ID_INFERENCE }}
+
+      - uses: ./.github/actions/cleanup
+        if: always()
+        with:
+          cleanup_command: "helm uninstall rag --namespace $NAMESPACE"

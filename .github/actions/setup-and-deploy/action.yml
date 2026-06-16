@@ -28,10 +28,6 @@ inputs:
     description: Pre-deploy setup commands
     required: false
     default: ''
-  deploy_timeout:
-    description: Deploy timeout in minutes
-    required: false
-    default: '15'
   kind_pre_deploy_command:
     description: Pre-deploy setup for KinD
     required: false
@@ -78,7 +74,6 @@ runs:
         deploy_command: ${{ inputs.deploy_command }}
         namespace: ${{ inputs.namespace }}
         setup_commands: ${{ inputs.setup_commands }}
-        timeout_minutes: ${{ inputs.deploy_timeout }}
 
     - name: Deploy via KinD
       if: inputs.use_kind == 'true'

@@ -22,8 +22,12 @@ jobs:
           PROD_TOKEN: ${{ secrets.PROD_TOKEN }}
           PROD_SERVER: ${{ secrets.PROD_SERVER }}
 
-      - uses: ./.github/actions/test-and-cleanup
+      - uses: ./.github/actions/run-quickstart-tests
         with:
           pre_test_command: "make e2e-ui-install"
           test_command: "make kind-verify"
-          cleanup_command: "make helm-uninstall"
+
+      - uses: ./.github/actions/cleanup
+        if: always()
+        with:
+          cleanup_command: "make helm-uninstall NAMESPACE=$NAMESPACE"
