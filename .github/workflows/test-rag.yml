@@ -29,6 +29,16 @@ jobs:
           MAAS_ENDPOINT: ${{ secrets.LLM_URL_INFERENCE }}
           MAAS_MODEL_ID: ${{ secrets.LLM_ID_INFERENCE }}
 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install test dependencies
+        shell: bash
+        working-directory: ./quickstart
+        run: pip install -r tests/integration/llamastack/requirements.txt
+
       - uses: ./.github/actions/run-quickstart-tests
         with:
           test_command: "pytest tests/integration/llamastack/ -v"

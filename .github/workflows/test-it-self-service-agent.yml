@@ -27,10 +27,15 @@ jobs:
           LLM_URL: ${{ vars.LLM_URL_INFERENCE }}
           LLM_API_TOKEN: ${{ secrets.LLM_API_TOKEN_INFERENCE }}
 
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.8.9"
+          python-version: "3.12"
+
       - uses: ./.github/actions/run-quickstart-tests
         timeout-minutes: 30
         with:
-          pre_test_command: "curl -LsSf https://astral.sh/uv/0.8.9/install.sh | sh"
           test_command: "make test-short-resp-integration-request-mgr"
         env:
           LLM: ${{ vars.LLM_INFERENCE }}

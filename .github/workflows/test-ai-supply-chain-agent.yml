@@ -22,6 +22,11 @@ jobs:
           PROD_TOKEN: ${{ secrets.PROD_TOKEN }}
           PROD_SERVER: ${{ secrets.PROD_SERVER }}
 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
       - uses: ./.github/actions/run-quickstart-tests
         with:
           pre_test_command: "make e2e-ui-install"
