@@ -39,9 +39,10 @@ jobs:
         working-directory: ./quickstart
         run: pip install -r tests/integration/llamastack/requirements.txt
 
-      - name: Port forward LlamaStack
+      - name: Port forward services
         run: |
           oc port-forward -n quickstart-ci-project-1 svc/llamastack 8321:8321 &
+          oc port-forward -n quickstart-ci-project-1 svc/rag 8501:8501 &
           sleep 5
 
       - uses: ./.github/actions/run-quickstart-tests
@@ -49,6 +50,7 @@ jobs:
           test_command: "pytest tests/integration/llamastack/ -v"
         env:
           LLAMA_STACK_ENDPOINT: http://localhost:8321
+          RAG_UI_ENDPOINT: http://localhost:8501
           MAAS_API_KEY: ${{ secrets.LLM_API_TOKEN_INFERENCE }}
           MAAS_ENDPOINT: ${{ vars.LLM_URL_INFERENCE }}
           MAAS_MODEL_ID: ${{ vars.LLM_ID_INFERENCE }}
