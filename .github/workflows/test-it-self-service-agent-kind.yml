@@ -20,6 +20,10 @@ jobs:
           repo_url: https://github.com/rh-ai-quickstart/it-self-service-agent
           use_kind: 'true'
           deploy_command: "make helm-install-test"
+          kind_extra_deploy_args: >-
+            EXTRA_HELM_ARGS="--set requestManagement.networkPolicies.platform=kind
+            --set requestManagement.requestManager.externalAccess.enabled=false
+            --set requestManagement.integrationDispatcher.externalAccess.enabled=false"
         env:
           LLM: ${{ vars.LLM_INFERENCE }}
           LLM_ID: ${{ vars.LLM_ID_INFERENCE }}
