@@ -45,6 +45,7 @@ runs:
       shell: bash
       env:
         PRE_DEPLOY_COMMAND: ${{ inputs.pre_deploy_command }}
+        NAMESPACE: ${{ inputs.namespace }}
       run: eval "$PRE_DEPLOY_COMMAND"
 
     - name: Create namespace
@@ -59,4 +60,5 @@ runs:
       env:
         DEPLOY_COMMAND: ${{ inputs.deploy_command }}
         EXTRA_DEPLOY_ARGS: ${{ inputs.extra_deploy_args }}
+        NAMESPACE: ${{ inputs.namespace }}
       run: eval "$DEPLOY_COMMAND" $EXTRA_DEPLOY_ARGS
