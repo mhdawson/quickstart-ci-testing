@@ -32,12 +32,12 @@ inputs:
     description: Pre-deploy setup for KinD
     required: false
     default: ''
-  kind_deploy_command:
-    description: Deploy command for KinD
+  extra_deploy_args:
+    description: Extra args appended to deploy command
     required: false
     default: ''
   kind_extra_deploy_args:
-    description: Extra args for KinD deploy
+    description: Extra args appended to deploy command only when using KinD
     required: false
     default: ''
 
@@ -67,19 +67,33 @@ runs:
         ref: ${{ inputs.ref }}
         submodules: ${{ inputs.submodules }}
 
-    - name: Deploy to OpenShift
+    - name: Setup OpenShift
       if: inputs.use_kind != 'true'
-      uses: ./.github/actions/deploy-quickstart
+      uses: ./.github/actions/setup-openshift
       with:
-        deploy_command: ${{ inputs.deploy_command }}
         namespace: ${{ inputs.namespace }}
         setup_commands: ${{ inputs.setup_commands }}
 
-    - name: Deploy via KinD
+    - name: Setup KinD
       if: inputs.use_kind == 'true'
-      uses: ./.github/actions/kind
+      uses: ./.github/actions/setup-kind
       with:
         namespace: ${{ inputs.namespace }}
         pre_deploy_command: ${{ inputs.kind_pre_deploy_command || inputs.setup_commands }}
-        deploy_command: ${{ inputs.kind_deploy_command || inputs.deploy_command }}
-        extra_deploy_args: ${{ inputs.kind_extra_deploy_args }}
+
+    - name: Deploy application
+      shell: bash
+      working-directory: ./quickstart
+      env:
+        DEPLOY_COMMAND: ${{ inputs.deploy_command }}
+        EXTRA_DEPLOY_ARGS: ${{ inputs.extra_deploy_args }} ${{ inputs.use_kind == 'true' && inputs.kind_extra_deploy_args || '' }}
+        NAMESPACE: ${{ inputs.namespace }}
+      run: eval "$DEPLOY_COMMAND" $EXTRA_DEPLOY_ARGS
+
+    - name: Verify deployment
+      shell: bash
+      env:
+        NAMESPACE: ${{ inputs.namespace }}
+      run: |
+        echo "=== Pod Status ==="
+        oc get pods -n "$NAMESPACE"

@@ -1,10 +1,7 @@
-name: Deploy Quickstart to OpenShift
-description: Deploy a quickstart to an OpenShift cluster using oc login and a configurable deploy command
+name: Setup OpenShift
+description: Log into OpenShift and run any pre-deploy setup commands
 
 inputs:
-  deploy_command:
-    description: Shell command to deploy (e.g. "make helm-install-test")
-    required: true
   working_dir:
     description: Directory to run commands in
     required: false
@@ -35,20 +32,3 @@ runs:
         NAMESPACE: ${{ inputs.namespace }}
       run: |
         eval "$SETUP_COMMANDS"
-
-    - name: Deploy quickstart
-      shell: bash
-      working-directory: ${{ inputs.working_dir }}
-      env:
-        DEPLOY_COMMAND: ${{ inputs.deploy_command }}
-        NAMESPACE: ${{ inputs.namespace }}
-      run: |
-        eval "$DEPLOY_COMMAND"
-
-    - name: Verify deployment
-      shell: bash
-      env:
-        NAMESPACE: ${{ inputs.namespace }}
-      run: |
-        echo "=== Pod Status ==="
-        oc get pods -n "$NAMESPACE"

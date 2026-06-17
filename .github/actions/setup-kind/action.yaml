@@ -1,5 +1,5 @@
-name: Initialize KinD cluster and deploy application
-description: Create a KinD cluster with local registry and deploy via helm
+name: Setup KinD cluster
+description: Create a KinD cluster with local registry and prepare for deployment
 
 inputs:
   namespace:
@@ -16,13 +16,6 @@ inputs:
     default: v0.30.0
   pre_deploy_command:
     description: Command to run before deploy (e.g. helm dependency build)
-    required: false
-    default: ''
-  deploy_command:
-    description: Command to deploy the application
-    required: true
-  extra_deploy_args:
-    description: Additional arguments appended to deploy_command
     required: false
     default: ''
 
@@ -53,12 +46,3 @@ runs:
       env:
         NAMESPACE: ${{ inputs.namespace }}
       run: kubectl create namespace "$NAMESPACE" || true
-
-    - name: Deploy application
-      working-directory: ${{ inputs.working_dir }}
-      shell: bash
-      env:
-        DEPLOY_COMMAND: ${{ inputs.deploy_command }}
-        EXTRA_DEPLOY_ARGS: ${{ inputs.extra_deploy_args }}
-        NAMESPACE: ${{ inputs.namespace }}
-      run: eval "$DEPLOY_COMMAND" $EXTRA_DEPLOY_ARGS
