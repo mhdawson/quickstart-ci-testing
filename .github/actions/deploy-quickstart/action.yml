@@ -37,6 +37,7 @@ runs:
       working-directory: ${{ inputs.working_dir }}
       env:
         SETUP_COMMANDS: ${{ inputs.setup_commands }}
+        NAMESPACE: ${{ inputs.namespace }}
       run: |
         eval "$SETUP_COMMANDS"
 

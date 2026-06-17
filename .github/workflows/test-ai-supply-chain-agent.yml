@@ -17,10 +17,37 @@ jobs:
       - uses: ./.github/actions/setup-and-deploy
         with:
           repo_url: https://github.com/rh-ai-quickstart/ai-supply-chain-agent
-          deploy_command: "make helm-install"
+          setup_commands: |
+            make helm-deps
+            cat > /tmp/ci-values.yaml <<VALEOF
+            global:
+              models:
+                llama-3-2-1b-instruct:
+                  enabled: false
+                external-model:
+                  id: "$LLM_ID"
+                  url: "$LLM_URL"
+                  apiToken: "$LLM_API_TOKEN"
+                  enabled: true
+            llm-service:
+              enabled: false
+            backend:
+              env:
+                LLAMA_STACK_URL: http://llamastack.$NAMESPACE.svc.cluster.local:8321
+            VALEOF
+          deploy_command: >-
+            helm install supply-chain-dashboard ./helm
+            --namespace $NAMESPACE
+            -f ./helm/values.yaml
+            -f /tmp/ci-values.yaml
+            --wait
+            --timeout 10m
         env:
           PROD_TOKEN: ${{ secrets.PROD_TOKEN }}
           PROD_SERVER: ${{ secrets.PROD_SERVER }}
+          LLM_ID: ${{ vars.LLM_ID_INFERENCE }}
+          LLM_URL: ${{ vars.LLM_URL_INFERENCE }}
+          LLM_API_TOKEN: ${{ secrets.LLM_API_TOKEN_INFERENCE }}
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -29,8 +56,11 @@ jobs:
 
       - uses: ./.github/actions/run-quickstart-tests
         with:
-          pre_test_command: "make e2e-ui-install"
-          test_command: "make kind-verify"
+          test_command: "make kind-verify-e2e"
+        env:
+          NAMESPACE: quickstart-ci-project-1
+          SKIP_MODEL_TESTS: "false"
+          LLM_API_TOKEN: ${{ secrets.LLM_API_TOKEN_INFERENCE }}
 
       - uses: ./.github/actions/cleanup
         if: always()
