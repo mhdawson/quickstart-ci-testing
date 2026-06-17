@@ -50,25 +50,38 @@ jobs:
 
       - name: Wait for ingestion pipelines to complete
         run: |
-          echo "Waiting for ingestion pipelines to complete..."
           TIMEOUT=600
           ELAPSED=0
+          STABLE_COUNT=0
+          LAST_TOTAL=0
+          echo "Waiting for ingestion pipelines to complete..."
           while [ $ELAPSED -lt $TIMEOUT ]; do
             PENDING=$(oc get pods -n quickstart-ci-project-1 --no-headers 2>/dev/null \
               | grep -E "fetch-and-store-pipeline|add-.*-pipeline" \
               | grep -v -E "Completed|Succeeded" \
               | wc -l)
-            if [ "$PENDING" -eq 0 ]; then
-              echo "No pending pipeline pods"
+            TOTAL=$(oc get pods -n quickstart-ci-project-1 --no-headers 2>/dev/null \
+              | grep -E "fetch-and-store-pipeline|add-.*-pipeline" \
+              | wc -l)
+            if [ "$PENDING" -eq 0 ] && [ "$TOTAL" -eq "$LAST_TOTAL" ]; then
+              STABLE_COUNT=$((STABLE_COUNT + 1))
+            else
+              STABLE_COUNT=0
+            fi
+            LAST_TOTAL=$TOTAL
+            if [ "$PENDING" -eq 0 ] && [ "$TOTAL" -gt 0 ] && [ "$STABLE_COUNT" -ge 2 ]; then
+              echo "All $TOTAL pipeline pods completed (stable for 30s)"
+              echo "=== Pod Status ==="
+              oc get pods -n quickstart-ci-project-1
               break
             fi
-            echo "Waiting... ($PENDING pipeline pods still running, ${ELAPSED}s elapsed)"
+            echo "Waiting... (pending=$PENDING total=$TOTAL stable=$STABLE_COUNT, ${ELAPSED}s elapsed)"
             sleep 15
             ELAPSED=$((ELAPSED + 15))
           done
           if [ $ELAPSED -ge $TIMEOUT ]; then
             echo "Warning: Timed out waiting for pipelines after ${TIMEOUT}s"
-            oc get pods -n quickstart-ci-project-1 | grep pipeline || true
+            oc get pods -n quickstart-ci-project-1
           fi
 
       - name: Port forward services
