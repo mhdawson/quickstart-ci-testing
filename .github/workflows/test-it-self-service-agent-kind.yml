@@ -40,6 +40,7 @@ jobs:
         timeout-minutes: 30
         with:
           test_command: "make test-short-resp-integration-request-mgr"
+          upload_results: "evaluations/results"
         env:
           LLM: ${{ vars.LLM_INFERENCE }}
           LLM_ID: ${{ vars.LLM_ID_INFERENCE }}

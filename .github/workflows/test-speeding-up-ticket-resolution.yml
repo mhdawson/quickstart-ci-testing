@@ -39,6 +39,7 @@ jobs:
         timeout-minutes: 30
         with:
           test_command: "make test-short-ticket-laptop-refresh"
+          upload_results: "it-self-service-agent/evaluations/results"
         env:
           LLM: ${{ vars.LLM_INFERENCE }}
           LLM_ID: ${{ vars.LLM_ID_INFERENCE }}

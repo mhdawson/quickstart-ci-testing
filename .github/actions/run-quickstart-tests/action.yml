@@ -1,5 +1,5 @@
 name: Run Tests
-description: Run pre-test setup and tests
+description: Run pre-test setup, tests, and optionally upload result artifacts
 
 inputs:
   test_command:
@@ -13,6 +13,16 @@ inputs:
     description: Setup command to run before tests
     required: false
     default: ''
+  upload_results:
+    description: >-
+      Space-separated list of directories (relative to test_working_dir)
+      to upload as artifacts after tests complete. Example: "evaluations/results test/reports"
+    required: false
+    default: ''
+  upload_retention_days:
+    description: Number of days to retain uploaded artifacts
+    required: false
+    default: '2'
 
 runs:
   using: composite
@@ -30,3 +40,32 @@ runs:
       with:
         test_command: ${{ inputs.test_command }}
         working_dir: ${{ inputs.test_working_dir }}
+
+    - name: Prepare upload paths
+      if: always() && inputs.upload_results != ''
+      id: upload-paths
+      shell: bash
+      env:
+        UPLOAD_RESULTS: ${{ inputs.upload_results }}
+        WORKING_DIR: ${{ inputs.test_working_dir }}
+      run: |
+        PATHS=""
+        for dir in $UPLOAD_RESULTS; do
+          if [[ "$dir" == /* ]] || [[ "$dir" == *..* ]]; then
+            echo "::error::upload_results paths must be relative to working dir and cannot contain '..': $dir"
+            exit 1
+          fi
+          PATHS="${PATHS}${WORKING_DIR}/${dir}"$'\n'
+        done
+        echo "paths<<EOF" >> "$GITHUB_OUTPUT"
+        echo "$PATHS" >> "$GITHUB_OUTPUT"
+        echo "EOF" >> "$GITHUB_OUTPUT"
+
+    - name: Upload test results
+      if: always() && inputs.upload_results != ''
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-results-${{ github.job }}-${{ github.run_id }}
+        path: ${{ steps.upload-paths.outputs.paths }}
+        retention-days: ${{ inputs.upload_retention_days }}
+        if-no-files-found: warn

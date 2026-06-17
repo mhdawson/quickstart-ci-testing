@@ -17,9 +17,12 @@ jobs:
       - uses: ./.github/actions/setup-and-deploy
         with:
           repo_url: https://github.com/rh-ai-quickstart/ai-supply-chain-agent
-          setup_commands: |
-            make helm-deps
-            cat > /tmp/ci-values.yaml <<VALEOF
+          setup_commands: "make helm-deps"
+          deploy_command: >-
+            helm install supply-chain-dashboard ./helm
+            --namespace $NAMESPACE
+            -f ./helm/values.yaml
+            -f <(cat <<VALEOF
             global:
               models:
                 llama-3-2-1b-instruct:
@@ -35,11 +38,7 @@ jobs:
               env:
                 LLAMA_STACK_URL: http://llamastack.$NAMESPACE.svc.cluster.local:8321
             VALEOF
-          deploy_command: >-
-            helm install supply-chain-dashboard ./helm
-            --namespace $NAMESPACE
-            -f ./helm/values.yaml
-            -f /tmp/ci-values.yaml
+            )
             --wait
             --timeout 10m
         env:
