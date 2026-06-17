@@ -69,6 +69,7 @@ runs:
       env:
         PUSH_COMMAND: ${{ inputs.push_images_command }}
         REGISTRY: localhost:5001
+        PUSH_EXTRA_AGRS: "--tls-verify=false"
       run: eval "$PUSH_COMMAND"
 
     - name: Create namespace
