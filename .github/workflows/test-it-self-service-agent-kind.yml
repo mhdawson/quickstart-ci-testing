@@ -1,0 +1,48 @@
+name: Test - IT Self-Service Agent (KinD)
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: quickstart-ci-tests
+  cancel-in-progress: false
+
+jobs:
+  test:
+    name: it-self-service-agent-kind
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: ./.github/actions/setup-and-deploy
+        timeout-minutes: 15
+        with:
+          repo_url: https://github.com/rh-ai-quickstart/it-self-service-agent
+          use_kind: 'true'
+          deploy_command: "make helm-install-test"
+        env:
+          LLM: ${{ vars.LLM_INFERENCE }}
+          LLM_ID: ${{ vars.LLM_ID_INFERENCE }}
+          LLM_URL: ${{ vars.LLM_URL_INFERENCE }}
+          LLM_API_TOKEN: ${{ secrets.LLM_API_TOKEN_INFERENCE }}
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.8.9"
+          python-version: "3.12"
+
+      - uses: ./.github/actions/run-quickstart-tests
+        timeout-minutes: 30
+        with:
+          test_command: "make test-short-resp-integration-request-mgr"
+        env:
+          LLM: ${{ vars.LLM_INFERENCE }}
+          LLM_ID: ${{ vars.LLM_ID_INFERENCE }}
+          LLM_URL: ${{ vars.LLM_URL_INFERENCE }}
+          LLM_API_TOKEN: ${{ secrets.LLM_API_TOKEN_INFERENCE }}
+
+      - uses: ./.github/actions/cleanup
+        if: always()
+        with:
+          cleanup_command: "make helm-uninstall"

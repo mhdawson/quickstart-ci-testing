@@ -80,6 +80,6 @@ runs:
       uses: ./.github/actions/kind
       with:
         namespace: ${{ inputs.namespace }}
-        pre_deploy_command: ${{ inputs.kind_pre_deploy_command }}
-        deploy_command: ${{ inputs.kind_deploy_command }}
+        pre_deploy_command: ${{ inputs.kind_pre_deploy_command || inputs.setup_commands }}
+        deploy_command: ${{ inputs.kind_deploy_command || inputs.deploy_command }}
         extra_deploy_args: ${{ inputs.kind_extra_deploy_args }}
