@@ -21,11 +21,6 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Install oc CLI
-      shell: bash
-      run: |
-        curl -sL https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable/openshift-client-linux.tar.gz | tar xzf - -C /usr/local/bin oc kubectl
-
     - name: Log into OpenShift cluster
       shell: bash
       run: |

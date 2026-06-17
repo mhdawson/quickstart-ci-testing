@@ -21,6 +21,11 @@ runs:
         swap-storage: ${{ inputs.swap-storage }}
         tool-cache: false
 
+    - name: Install oc CLI
+      shell: bash
+      run: |
+        curl -sL https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable/openshift-client-linux.tar.gz | tar xzf - -C /usr/local/bin oc kubectl
+
     - name: Check memory and swap status
       shell: bash
       run: |
