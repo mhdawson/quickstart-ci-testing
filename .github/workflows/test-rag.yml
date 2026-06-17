@@ -55,7 +55,7 @@ jobs:
           ELAPSED=0
           while [ $ELAPSED -lt $TIMEOUT ]; do
             PENDING=$(oc get pods -n quickstart-ci-project-1 --no-headers 2>/dev/null \
-              | grep -E "pipeline" \
+              | grep -E "fetch-and-store-pipeline|add-.*-pipeline" \
               | grep -v -E "Completed|Succeeded" \
               | wc -l)
             if [ "$PENDING" -eq 0 ]; then
