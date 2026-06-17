@@ -40,12 +40,31 @@ inputs:
     description: Extra args appended to deploy command only when using KinD
     required: false
     default: ''
+  build_images:
+    description: Build and push images to local KinD registry (only valid with use_kind)
+    required: false
+    default: 'false'
+  build_images_command:
+    description: Command to build images
+    required: false
+    default: 'make build-all-images'
+  push_images_command:
+    description: Command to push images to local registry
+    required: false
+    default: 'make push-all-images'
 
 runs:
   using: composite
   steps:
     - name: Prepare Runner
       uses: ./.github/actions/prepare-runner
+
+    - name: Validate build_images requires use_kind
+      if: inputs.build_images == 'true' && inputs.use_kind != 'true'
+      shell: bash
+      run: |
+        echo "::error::build_images can only be used when use_kind is 'true'"
+        exit 1
 
     - name: Validate OpenShift secrets
       if: inputs.use_kind != 'true'
@@ -80,14 +99,29 @@ runs:
       with:
         namespace: ${{ inputs.namespace }}
         pre_deploy_command: ${{ inputs.kind_pre_deploy_command || inputs.setup_commands }}
+        build_images: ${{ inputs.build_images }}
+        build_images_command: ${{ inputs.build_images_command }}
+        push_images_command: ${{ inputs.push_images_command }}
 
     - name: Deploy application
+      if: inputs.build_images != 'true'
       shell: bash
       working-directory: ./quickstart
       env:
         DEPLOY_COMMAND: ${{ inputs.deploy_command }}
         EXTRA_DEPLOY_ARGS: ${{ inputs.extra_deploy_args }} ${{ inputs.use_kind == 'true' && inputs.kind_extra_deploy_args || '' }}
         NAMESPACE: ${{ inputs.namespace }}
+      run: eval "$DEPLOY_COMMAND" $EXTRA_DEPLOY_ARGS
+
+    - name: Deploy application (local images)
+      if: inputs.build_images == 'true'
+      shell: bash
+      working-directory: ./quickstart
+      env:
+        DEPLOY_COMMAND: ${{ inputs.deploy_command }}
+        EXTRA_DEPLOY_ARGS: ${{ inputs.extra_deploy_args }} ${{ inputs.use_kind == 'true' && inputs.kind_extra_deploy_args || '' }}
+        NAMESPACE: ${{ inputs.namespace }}
+        REGISTRY: localhost:5001
       run: eval "$DEPLOY_COMMAND" $EXTRA_DEPLOY_ARGS
 
     - name: Verify deployment

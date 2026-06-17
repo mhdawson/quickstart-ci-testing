@@ -18,6 +18,18 @@ inputs:
     description: Command to run before deploy (e.g. helm dependency build)
     required: false
     default: ''
+  build_images:
+    description: Build and push images to the local KinD registry
+    required: false
+    default: 'false'
+  build_images_command:
+    description: Command to build images
+    required: false
+    default: 'make build-all-images'
+  push_images_command:
+    description: Command to push images to local registry
+    required: false
+    default: 'make push-all-images'
 
 runs:
   using: composite
@@ -40,6 +52,24 @@ runs:
         PRE_DEPLOY_COMMAND: ${{ inputs.pre_deploy_command }}
         NAMESPACE: ${{ inputs.namespace }}
       run: eval "$PRE_DEPLOY_COMMAND"
+
+    - name: Build images
+      if: inputs.build_images == 'true'
+      working-directory: ${{ inputs.working_dir }}
+      shell: bash
+      env:
+        BUILD_COMMAND: ${{ inputs.build_images_command }}
+        REGISTRY: localhost:5001
+      run: eval "$BUILD_COMMAND"
+
+    - name: Push images to local registry
+      if: inputs.build_images == 'true'
+      working-directory: ${{ inputs.working_dir }}
+      shell: bash
+      env:
+        PUSH_COMMAND: ${{ inputs.push_images_command }}
+        REGISTRY: localhost:5001
+      run: eval "$PUSH_COMMAND"
 
     - name: Create namespace
       shell: bash
