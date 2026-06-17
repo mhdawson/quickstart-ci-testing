@@ -37,7 +37,39 @@ jobs:
       - name: Install test dependencies
         shell: bash
         working-directory: ./quickstart
-        run: pip install -r tests/integration/llamastack/requirements.txt
+        run: |
+          pip install -r tests/e2e_ui/requirements.txt
+          playwright install chromium
+
+      - name: Wait for deployments to be ready
+        run: |
+          oc wait --for=condition=available --timeout=600s deployment/llamastack -n quickstart-ci-project-1
+          oc wait --for=condition=available --timeout=300s deployment/rag -n quickstart-ci-project-1
+          oc wait --for=condition=ready --timeout=600s pod -l app.kubernetes.io/name=llamastack -n quickstart-ci-project-1
+          oc wait --for=condition=ready --timeout=300s pod -l app.kubernetes.io/name=rag -n quickstart-ci-project-1
+
+      - name: Wait for ingestion pipelines to complete
+        run: |
+          echo "Waiting for ingestion pipelines to complete..."
+          TIMEOUT=600
+          ELAPSED=0
+          while [ $ELAPSED -lt $TIMEOUT ]; do
+            PENDING=$(oc get pods -n quickstart-ci-project-1 --no-headers 2>/dev/null \
+              | grep -E "pipeline" \
+              | grep -v -E "Completed|Succeeded" \
+              | wc -l)
+            if [ "$PENDING" -eq 0 ]; then
+              echo "No pending pipeline pods"
+              break
+            fi
+            echo "Waiting... ($PENDING pipeline pods still running, ${ELAPSED}s elapsed)"
+            sleep 15
+            ELAPSED=$((ELAPSED + 15))
+          done
+          if [ $ELAPSED -ge $TIMEOUT ]; then
+            echo "Warning: Timed out waiting for pipelines after ${TIMEOUT}s"
+            oc get pods -n quickstart-ci-project-1 | grep pipeline || true
+          fi
 
       - name: Port forward services
         run: |
@@ -47,7 +79,7 @@ jobs:
 
       - uses: ./.github/actions/run-quickstart-tests
         with:
-          test_command: "pytest tests/integration/llamastack/ -v"
+          test_command: "pytest tests/e2e_ui/ -v --browser chromium"
         env:
           LLAMA_STACK_ENDPOINT: http://localhost:8321
           RAG_UI_ENDPOINT: http://localhost:8501
