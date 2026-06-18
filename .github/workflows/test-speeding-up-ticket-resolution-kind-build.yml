@@ -33,11 +33,11 @@ jobs:
             EXTRA_HELM_ARGS="--set requestManagement.networkPolicies.platform=kind
             --set requestManagement.requestManager.externalAccess.enabled=false
             --set requestManagement.integrationDispatcher.externalAccess.enabled=false
-            --set ticketingZammad.externalRoute.enabled=false
-            --set requestManagement.requestManager.uvicornWorkers=2
-            --set requestManagement.integrationDispatcher.uvicornWorkers=2
-            --set requestManagement.agentService.uvicornWorkers=2
-            --set requestManagement.knative.mockEventing.uvicornWorkers=2"
+            --set ticketingZammad.externalRoute.enabled=false"
+#            --set requestManagement.requestManager.uvicornWorkers=2
+#            --set requestManagement.integrationDispatcher.uvicornWorkers=2
+#            --set requestManagement.agentService.uvicornWorkers=2
+#            --set requestManagement.knative.mockEventing.uvicornWorkers=2
         env:
           LLM: ${{ vars.LLM_INFERENCE }}
           LLM_ID: ${{ vars.LLM_ID_INFERENCE }}
@@ -46,26 +46,26 @@ jobs:
           ZAMMAD_DEMO_SITE_ENABLED: "false"
           REPLICA_COUNT: "2"
 
-      - name: Wait for terminating pods to finish
-        run: |
-          TIMEOUT=240
-          ELAPSED=0
-          while [ $ELAPSED -lt $TIMEOUT ]; do
-            TERMINATING=$(oc get pods -n quickstart-ci-project-1 --no-headers 2>/dev/null \
-              | grep -c "Terminating" || true)
-            if [ "$TERMINATING" -eq 0 ]; then
-              echo "No terminating pods remaining"
-              oc get pods -n quickstart-ci-project-1
-              break
-            fi
-            echo "Waiting for $TERMINATING terminating pod(s)... (${ELAPSED}s elapsed)"
-            sleep 5
-            ELAPSED=$((ELAPSED + 5))
-          done
-          if [ $ELAPSED -ge $TIMEOUT ]; then
-            echo "Warning: Timed out waiting for terminating pods after ${TIMEOUT}s"
-            oc get pods -n quickstart-ci-project-1
-          fi
+#     - name: Wait for terminating pods to finish
+#        run: |
+#          TIMEOUT=240
+#          ELAPSED=0
+#          while [ $ELAPSED -lt $TIMEOUT ]; do
+#            TERMINATING=$(oc get pods -n quickstart-ci-project-1 --no-headers 2>/dev/null \
+#              | grep -c "Terminating" || true)
+#            if [ "$TERMINATING" -eq 0 ]; then
+#              echo "No terminating pods remaining"
+#              oc get pods -n quickstart-ci-project-1
+#              break
+#            fi
+#            echo "Waiting for $TERMINATING terminating pod(s)... (${ELAPSED}s elapsed)"
+#            sleep 5
+#            ELAPSED=$((ELAPSED + 5))
+#          done
+#          if [ $ELAPSED -ge $TIMEOUT ]; then
+#            echo "Warning: Timed out waiting for terminating pods after ${TIMEOUT}s"
+#            oc get pods -n quickstart-ci-project-1
+#          fi
 
       - uses: ./.github/actions/run-quickstart-tests
         timeout-minutes: 30
