@@ -44,6 +44,7 @@ jobs:
           LLM_URL: ${{ vars.LLM_URL_INFERENCE }}
           LLM_API_TOKEN: ${{ secrets.LLM_API_TOKEN_INFERENCE }}
           ZAMMAD_DEMO_SITE_ENABLED: "false"
+          REPLICA_COUNT: "2"
 
       - name: Wait for terminating pods to finish
         run: |
