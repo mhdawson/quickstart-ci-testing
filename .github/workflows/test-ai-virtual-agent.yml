@@ -18,7 +18,10 @@ jobs:
         timeout-minutes: 15
         with:
           repo_url: https://github.com/rh-ai-quickstart/ai-virtual-agent
-          setup_commands: "helm repo add ai-architecture-charts https://rh-ai-quickstart.github.io/ai-architecture-charts && helm dependency build deploy/cluster/helm"
+          setup_commands: >-
+            helm repo add ai-architecture-charts https://rh-ai-quickstart.github.io/ai-architecture-charts
+            && helm dependency build deploy/cluster/helm
+            && sed -i '/kind: ClusterRoleBinding/,$d' deploy/cluster/helm/templates/rbac.yaml
           deploy_command: "make -C deploy/cluster install"
         env:
           PROD_TOKEN: ${{ secrets.PROD_TOKEN }}
