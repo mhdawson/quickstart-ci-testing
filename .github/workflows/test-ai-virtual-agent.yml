@@ -18,6 +18,7 @@ jobs:
         timeout-minutes: 15
         with:
           repo_url: https://github.com/rh-ai-quickstart/ai-virtual-agent
+          ref: dev
           setup_commands: >-
             helm repo add ai-architecture-charts https://rh-ai-quickstart.github.io/ai-architecture-charts
             && sed -i 's/version: 0\.7\.2/version: 0.8.5/' deploy/cluster/helm/Chart.yaml
