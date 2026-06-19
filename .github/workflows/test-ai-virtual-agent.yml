@@ -20,6 +20,7 @@ jobs:
           repo_url: https://github.com/rh-ai-quickstart/ai-virtual-agent
           setup_commands: >-
             helm repo add ai-architecture-charts https://rh-ai-quickstart.github.io/ai-architecture-charts
+            && sed -i 's/version: 0\.7\.2/version: 0.8.5/' deploy/cluster/helm/Chart.yaml
             && helm dependency build deploy/cluster/helm
             && cp "$GITHUB_WORKSPACE/test-ai-virtual-agent/rbac.yaml" deploy/cluster/helm/templates/rbac.yaml
           deploy_command: "make -C deploy/cluster install"
