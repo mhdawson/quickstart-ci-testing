@@ -45,6 +45,7 @@ jobs:
       - uses: ./.github/actions/run-quickstart-tests
         timeout-minutes: 30
         with:
+          pre_test_command: "pip install -r tests/requirements.txt"
           test_command: "make -C deploy/local test-int"
         env:
           TEST_FRONTEND_URL: http://localhost:8000
