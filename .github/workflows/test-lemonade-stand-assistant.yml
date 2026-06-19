@@ -1,0 +1,38 @@
+name: Test - Lemonade Stand Assistant
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: quickstart-ci-tests
+  cancel-in-progress: false
+
+jobs:
+  test:
+    name: lemonade-stand-assistant
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: ./.github/actions/setup-and-deploy
+        timeout-minutes: 15
+        with:
+          repo_url: https://github.com/rh-ai-quickstart/lemonade-stand-assistant
+          deploy_command: >-
+            LLM_HOST=$(echo "$LLM_URL" | sed 's|https\?://||;s|/.*||')
+            && helm install lemonade-stand-assistant ./chart --namespace "$NAMESPACE"
+            --set model.name="$LLM_ID"
+            --set model.endpoint="$LLM_HOST"
+            --set model.port=443
+            --set model.api_key="$LLM_API_TOKEN"
+        env:
+          PROD_TOKEN: ${{ secrets.PROD_TOKEN }}
+          PROD_SERVER: ${{ secrets.PROD_SERVER }}
+          LLM_ID: ${{ vars.LLM_ID_INFERENCE }}
+          LLM_URL: ${{ vars.LLM_URL_INFERENCE }}
+          LLM_API_TOKEN: ${{ secrets.LLM_API_TOKEN_INFERENCE }}
+
+      - uses: ./.github/actions/cleanup
+        if: always()
+        with:
+          cleanup_command: "helm uninstall lemonade-stand-assistant --namespace $NAMESPACE"
