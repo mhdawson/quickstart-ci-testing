@@ -33,11 +33,21 @@ jobs:
           LLM_URL: ${{ vars.LLM_URL_INFERENCE }}
           LLM_API_TOKEN: ${{ secrets.LLM_API_TOKEN_INFERENCE }}
 
+      - name: Port-forward services
+        shell: bash
+        env:
+          NAMESPACE: quickstart-ci-project-1
+        run: |
+          oc port-forward -n "$NAMESPACE" svc/ai-virtual-agent 8000:8000 &
+          oc port-forward -n "$NAMESPACE" svc/llamastack 8321:8321 &
+          sleep 5
+
       - uses: ./.github/actions/run-quickstart-tests
         timeout-minutes: 30
         with:
           test_command: "make -C deploy/local test-int"
         env:
+          TEST_FRONTEND_URL: http://localhost:8000
           LLM: ${{ vars.LLM_INFERENCE }}
           LLM_URL: ${{ vars.LLM_URL_INFERENCE }}
           LLM_API_TOKEN: ${{ secrets.LLM_API_TOKEN_INFERENCE }}
