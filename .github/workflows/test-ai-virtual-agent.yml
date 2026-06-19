@@ -21,7 +21,9 @@ jobs:
           setup_commands: >-
             helm repo add ai-architecture-charts https://rh-ai-quickstart.github.io/ai-architecture-charts
             && helm dependency build deploy/cluster/helm
-            && sed -i '/kind: ClusterRoleBinding/,$d' deploy/cluster/helm/templates/rbac.yaml
+            && CRB_LINE=$(grep -n 'kind: ClusterRoleBinding' deploy/cluster/helm/templates/rbac.yaml | head -1 | cut -d: -f1)
+            && head -n $((CRB_LINE - 3)) deploy/cluster/helm/templates/rbac.yaml > /tmp/rbac.yaml
+            && mv /tmp/rbac.yaml deploy/cluster/helm/templates/rbac.yaml
           deploy_command: "make -C deploy/cluster install"
         env:
           PROD_TOKEN: ${{ secrets.PROD_TOKEN }}
