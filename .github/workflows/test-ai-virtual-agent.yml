@@ -18,6 +18,7 @@ jobs:
         timeout-minutes: 15
         with:
           repo_url: https://github.com/rh-ai-quickstart/ai-virtual-agent
+          setup_commands: "helm dependency build deploy/cluster/helm"
           deploy_command: "make -C deploy/cluster install"
         env:
           PROD_TOKEN: ${{ secrets.PROD_TOKEN }}
