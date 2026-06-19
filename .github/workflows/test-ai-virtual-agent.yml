@@ -21,7 +21,7 @@ jobs:
           ref: dev
           setup_commands: >-
             helm repo add ai-architecture-charts https://rh-ai-quickstart.github.io/ai-architecture-charts
-            && sed -i 's/version: 0\.7\.2/version: 0.8.5/' deploy/cluster/helm/Chart.yaml
+            && sed -i '/name: llama-stack/{n;s/version: 0\.7\.2/version: 0.8.5/}' deploy/cluster/helm/Chart.yaml
             && rm -f deploy/cluster/helm/Chart.lock
             && helm dependency build deploy/cluster/helm
             && cp "$GITHUB_WORKSPACE/test-ai-virtual-agent/rbac.yaml" deploy/cluster/helm/templates/rbac.yaml
