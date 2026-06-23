@@ -19,7 +19,6 @@ jobs:
         with:
           repo_url: https://github.com/rh-ai-quickstart/lemonade-stand-assistant
           setup_commands: |
-            sed -i 's/port: 8000/port: 80/g' ./chart/templates/fms-orchestr8-config-nlp.yaml
             python3 -c "
             f = './chart/templates/llm-llama32.yaml'
             txt = open(f).read()
