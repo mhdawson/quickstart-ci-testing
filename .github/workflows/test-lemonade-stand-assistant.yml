@@ -18,7 +18,7 @@ jobs:
         timeout-minutes: 15
         with:
           repo_url: https://github.com/rh-ai-quickstart/lemonade-stand-assistant
-          setup_commands: sed -i 's/port: 8000/port: 80/g' ./chart/templates/fms-orchestr8-config-nlp.yaml
+          setup_commands: "sed -i 's/port: 8000/port: 80/g' ./chart/templates/fms-orchestr8-config-nlp.yaml"
           deploy_command: >-
             LLM_HOST=$(echo "$LLM_URL" | sed 's|https\?://||;s|/.*||')
             && helm install lemonade-stand-assistant ./chart --namespace "$NAMESPACE"
