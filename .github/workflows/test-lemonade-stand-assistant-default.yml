@@ -1,0 +1,47 @@
+name: Test - Lemonade Stand Assistant (Default Model)
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: quickstart-ci-tests
+  cancel-in-progress: false
+
+jobs:
+  test:
+    name: lemonade-stand-assistant-default
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: ./.github/actions/setup-and-deploy
+        timeout-minutes: 15
+        with:
+          repo_url: https://github.com/rh-ai-quickstart/lemonade-stand-assistant
+          setup_commands: |
+            sed -i 's/port: 8000/port: 80/g' ./chart/templates/fms-orchestr8-config-nlp.yaml
+            python3 -c "
+            f = './chart/templates/llm-llama32.yaml'
+            txt = open(f).read()
+            old = '    tolerations:\n      - effect: NoSchedule\n        key: nvidia.com/gpu\n        operator: Exists'
+            new = '    tolerations:\n      - effect: NoSchedule\n        key: g5-gpu\n        operator: Exists\n      - effect: NoSchedule\n        key: nvidia.com/gpu\n        operator: Exists'
+            open(f, 'w').write(txt.replace(old, new))
+            "
+          deploy_command: >-
+            helm install lemonade-stand-assistant ./chart --namespace "$NAMESPACE"
+        env:
+          PROD_TOKEN: ${{ secrets.PROD_TOKEN }}
+          PROD_SERVER: ${{ secrets.PROD_SERVER }}
+
+      - name: Wait for deployment and soak
+        env:
+          NAMESPACE: quickstart-ci-project-1
+        run: |
+          oc wait --for=condition=Available deployment --all -n "$NAMESPACE" --timeout=20m
+          oc get pods -n "$NAMESPACE"
+          sleep 300
+
+      - uses: ./.github/actions/cleanup
+        if: always()
+        with:
+          cleanup_command: "helm uninstall lemonade-stand-assistant --namespace $NAMESPACE"
