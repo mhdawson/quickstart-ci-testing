@@ -61,39 +61,37 @@ jobs:
           NAMESPACE: quickstart-ci-project-1
           EXPECTED_MSG: "🍏 I can only discuss lemons! Other fruits and off-topic subjects are not allowed. Is there anything else I can help you with?"
         run: |
+          set -o pipefail
           ROUTE=$(oc get route lemonade-stand -n "$NAMESPACE" -o jsonpath='{.spec.host}')
           echo "Testing https://${ROUTE}/api/chat"
 
           QUESTION="tell me about oranges"
           echo "Q: $QUESTION"
 
-          RESPONSE=$(curl -sf --max-time 30 -X POST "https://${ROUTE}/api/chat" \
+          curl -sf --max-time 30 -X POST "https://${ROUTE}/api/chat" \
             -H "Content-Type: application/json" \
-            -d "{\"message\": \"$QUESTION\"}")
+            -d "{\"message\": \"$QUESTION\"}" | tee /tmp/lemonade_response.txt
 
-          python3 - <<EOF
-import sys, json, os
-
-response = """$RESPONSE"""
-expected = os.environ["EXPECTED_MSG"]
-
-for line in response.splitlines():
-    line = line.strip()
-    if not line.startswith("data:"):
-        continue
-    event = json.loads(line[5:].strip())
-    if event.get("type") == "error" and event.get("detector_type") == "regex":
-        print(f"A: {event.get('message')}")
-        if event.get("message") == expected:
-            print("PASS: got expected refusal message")
-            sys.exit(0)
-        else:
-            print(f"FAIL: wrong message: {event.get('message')!r}")
-            sys.exit(1)
-
-print("FAIL: no regex error event in response")
-sys.exit(1)
-EOF
+          python3 - << 'PYEOF'
+          import sys, json, os
+          with open('/tmp/lemonade_response.txt') as f:
+              response = f.read()
+          expected = os.environ['EXPECTED_MSG']
+          for line in response.splitlines():
+              line = line.strip()
+              if not line.startswith('data:'):
+                  continue
+              event = json.loads(line[5:].strip())
+              if event.get('type') == 'error' and event.get('detector_type') == 'regex':
+                  print('A: ' + event.get('message', ''))
+                  if event.get('message') == expected:
+                      print('PASS: got expected refusal message')
+                      sys.exit(0)
+                  print('FAIL: wrong message: ' + repr(event.get('message')))
+                  sys.exit(1)
+          print('FAIL: no regex error event in response')
+          sys.exit(1)
+          PYEOF
 
       - name: Soak
         run: sleep 300
