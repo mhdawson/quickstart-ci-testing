@@ -100,7 +100,7 @@ runs:
         NAMESPACE: ${{ inputs.namespace }}
       run: |
         echo "=== OpenShift Version ==="
-        oc get clusterversion version -o jsonpath='{.status.desired.version}{"\n"}'
+        oc version || true
 
         echo ""
         echo "=== OpenShift AI Operator Version ==="

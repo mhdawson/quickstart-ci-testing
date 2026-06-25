@@ -93,9 +93,6 @@ jobs:
           sys.exit(1)
           PYEOF
 
-      - name: Soak
-        run: sleep 300
-
       - uses: ./.github/actions/cleanup
         if: always()
         with:
