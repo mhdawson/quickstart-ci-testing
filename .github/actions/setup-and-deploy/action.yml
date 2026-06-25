@@ -96,15 +96,16 @@ runs:
     - name: Print environment versions
       if: inputs.use_kind != 'true'
       shell: bash
+      env:
+        NAMESPACE: ${{ inputs.namespace }}
       run: |
         echo "=== OpenShift Version ==="
-        oc version
+        oc get clusterversion version -o jsonpath='{.status.desired.version}{"\n"}'
 
         echo ""
         echo "=== OpenShift AI Operator Version ==="
-        oc get csv -A \
-          -o custom-columns='NAMESPACE:.metadata.namespace,NAME:.metadata.name,VERSION:.spec.version' \
-          --no-headers 2>/dev/null \
+        oc get csv -n "$NAMESPACE" \
+          -o jsonpath='{range .items[*]}{.metadata.name}{" "}{.spec.version}{"\n"}{end}' 2>/dev/null \
           | grep -iE 'rhods|rhoai|opendatahub' \
           || echo "(OpenShift AI operator not found)"
 
