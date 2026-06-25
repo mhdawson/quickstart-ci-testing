@@ -27,9 +27,9 @@ jobs:
             open(f, 'w').write(txt.replace(old, new))
             "
             sed -i 's/port: 8000/port: 80/g' ./chart/templates/fms-orchestr8-config-nlp.yaml
+            sed -i 's/| default "8080"/| default "80"/' ./chart/templates/fms-orchestr8-config-nlp.yaml
           deploy_command: >-
             helm install lemonade-stand-assistant ./chart --namespace "$NAMESPACE"
-            --set model.port=80
         env:
           PROD_TOKEN: ${{ secrets.PROD_TOKEN }}
           PROD_SERVER: ${{ secrets.PROD_SERVER }}
