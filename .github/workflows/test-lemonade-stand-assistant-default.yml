@@ -26,6 +26,7 @@ jobs:
             new = '    tolerations:\n      - effect: NoSchedule\n        key: g5-gpu\n        operator: Exists\n      - effect: NoSchedule\n        key: nvidia.com/gpu\n        operator: Exists'
             open(f, 'w').write(txt.replace(old, new))
             "
+            sed -i 's/port: 8000/port: 80/g' ./chart/templates/fms-orchestr8-config-nlp.yaml
           deploy_command: >-
             helm install lemonade-stand-assistant ./chart --namespace "$NAMESPACE"
         env:
