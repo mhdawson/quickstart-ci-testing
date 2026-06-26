@@ -26,6 +26,10 @@ jobs:
             new = '    tolerations:\n      - effect: NoSchedule\n        key: g5-gpu\n        operator: Exists\n      - effect: NoSchedule\n        key: nvidia.com/gpu\n        operator: Exists'
             open(f, 'w').write(txt.replace(old, new))
             "
+            # Our cluster runs KServe in headed mode, where predictor Services expose port 80
+            # (the Service maps 80 -> the container's native port internally). The quickstart
+            # chart was written for headless mode and hardcodes ports 8000/8080 for the
+            # guardrails detectors and LLM predictor respectively. Patch them to port 80.
             sed -i 's/port: 8000/port: 80/g' ./chart/templates/fms-orchestr8-config-nlp.yaml
             sed -i 's/| default "8080"/| default "80"/' ./chart/templates/fms-orchestr8-config-nlp.yaml
           deploy_command: >-

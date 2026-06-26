@@ -4,8 +4,7 @@ description: Create a KinD cluster with local registry and prepare for deploymen
 inputs:
   namespace:
     description: Kubernetes namespace to deploy into
-    required: false
-    default: quickstart-ci-project-1
+    required: true
   working_dir:
     description: Directory containing the quickstart code
     required: false

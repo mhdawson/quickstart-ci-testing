@@ -5,10 +5,6 @@ inputs:
   cleanup_command:
     description: Command to tear down the deployment
     required: true
-  namespace:
-    description: Kubernetes namespace
-    required: false
-    default: quickstart-ci-project-1
   working_dir:
     description: Directory to run cleanup in
     required: false
@@ -23,12 +19,9 @@ runs:
       continue-on-error: true
       env:
         CLEANUP_COMMAND: ${{ inputs.cleanup_command }}
-        NAMESPACE: ${{ inputs.namespace }}
       run: eval "$CLEANUP_COMMAND"
 
     - name: Delete remaining resources
       shell: bash
       continue-on-error: true
-      env:
-        NAMESPACE: ${{ inputs.namespace }}
       run: oc delete pods,deployments,replicasets,statefulsets,services,jobs,cronjobs,daemonsets,pvc --all -n "$NAMESPACE"

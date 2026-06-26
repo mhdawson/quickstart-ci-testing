@@ -59,6 +59,10 @@ runs:
     - name: Prepare Runner
       uses: ./.github/actions/prepare-runner
 
+    - name: Export namespace
+      shell: bash
+      run: echo "NAMESPACE=${{ inputs.namespace }}" >> "$GITHUB_ENV"
+
     - name: Validate build_images requires use_kind
       if: inputs.build_images == 'true' && inputs.use_kind != 'true'
       shell: bash
