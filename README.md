@@ -21,6 +21,14 @@ This repo addresses the need for regular sniff testing on quickstarts through a 
 the common actions in `.github/actions directory` to deploy and test quickstarts from this repository.
 These workflows are scheduled to run on a regular basis and report on the health of the associated quickstarts.
 
+## Current status
+
+| Quickstart | Status |
+|---|---|
+| RAG | [![Test - RAG](https://github.com/mhdawson/quickstart-ci-testing/actions/workflows/test-rag.yml/badge.svg)](https://github.com/mhdawson/quickstart-ci-testing/actions/workflows/test-rag.yml) |
+| Lemonade Stand Assistant (Default Model) | [![Test - Lemonade Stand Assistant (Default Model)](https://github.com/mhdawson/quickstart-ci-testing/actions/workflows/test-lemonade-stand-assistant-default.yml/badge.svg)](https://github.com/mhdawson/quickstart-ci-testing/actions/workflows/test-lemonade-stand-assistant-default.yml) |
+| Speeding Up Ticket Resolution | [![Test - Speeding Up Ticket Resolution](https://github.com/mhdawson/quickstart-ci-testing/actions/workflows/test-speeding-up-ticket-resolution.yml/badge.svg)](https://github.com/mhdawson/quickstart-ci-testing/actions/workflows/test-speeding-up-ticket-resolution.yml) |
+
 ## Common actions
 
 This repo provides 3 top level actions to be used with test workflows
@@ -178,9 +186,10 @@ To add a quickstart that will be tested on a regular basis, PR in a workflow to 
 to make sure the tests are passing. It may be easiest to start by copying one of the existing
 workflows and then modifying to deploy/test your quickstart.
 
+The PR should also add a status badge for your workflow to the [Current status](#current-status) section above.
+
 As part of the PR approval process you will also need to co-ordinate with the maintainers so that
 any additional secrets required are added to the repository (for example to a different model).
-
 
 ## Re-using in a quickstart repository
 
