@@ -2,6 +2,8 @@ name: Test - IT Self-Service Agent
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: '0 22 * * 6'  # Saturday 6pm ET (EDT UTC-4)
 
 concurrency:
   group: quickstart-ci-tests
