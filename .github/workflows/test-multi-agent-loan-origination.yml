@@ -24,9 +24,9 @@ jobs:
         env:
           PROD_TOKEN: ${{ secrets.PROD_TOKEN }}
           PROD_SERVER: ${{ secrets.PROD_SERVER }}
-          LLM_BASE_URL: ${{ vars.LLM_URL_INFERENCE }}
-          LLM_API_KEY: ${{ secrets.LLM_API_TOKEN_INFERENCE }}
-          LLM_MODEL: ${{ vars.LLM_ID_INFERENCE }}
+          LLM_BASE_URL: ${{ vars.LLM_URL_INFERENCE_SCOUT }}
+          LLM_API_KEY: ${{ secrets.LLM_API_TOKEN_INFERENCE_SCOUT }}
+          LLM_MODEL: ${{ vars.LLM_ID_INFERENCE_SCOUT }}
           HELM_TIMEOUT: 30m
           HELM_EXTRA_ARGS: --set mlflow.rbac.enabled=false
 
