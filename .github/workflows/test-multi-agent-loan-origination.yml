@@ -1,0 +1,61 @@
+name: Test - Multi-Agent Loan Origination
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 3 * * 0'  # Sunday 03:00 UTC
+
+concurrency:
+  group: quickstart-ci-tests
+  cancel-in-progress: false
+
+jobs:
+  test:
+    name: multi-agent-loan-origination
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: ./.github/actions/setup-and-deploy
+        timeout-minutes: 45
+        with:
+          repo_url: https://github.com/rh-ai-quickstart/multi-agent-loan-origination
+          deploy_command: "./scripts/deploy.sh"
+        env:
+          PROD_TOKEN: ${{ secrets.PROD_TOKEN }}
+          PROD_SERVER: ${{ secrets.PROD_SERVER }}
+          LLM_BASE_URL: ${{ vars.LLM_URL_INFERENCE }}
+          LLM_API_KEY: ${{ secrets.LLM_API_TOKEN_INFERENCE }}
+          LLM_MODEL: ${{ vars.LLM_ID_INFERENCE }}
+          HELM_TIMEOUT: 30m
+          HELM_EXTRA_ARGS: --set mlflow.rbac.enabled=false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: '9.15.9'
+
+      - uses: ./.github/actions/run-quickstart-tests
+        timeout-minutes: 60
+        with:
+          pre_test_command: |
+            pnpm install --frozen-lockfile
+            pnpm --filter @mortgage-ai/e2e exec playwright install --with-deps chromium
+          test_command: |
+            UI_HOST=$(oc get route mortgage-ai-ui-route -n "$NAMESPACE" -o jsonpath='{.spec.host}')
+            KEYCLOAK_HOST=$(oc get route keycloak-route -n "$NAMESPACE" -o jsonpath='{.spec.host}')
+            export BASE_URL="https://${UI_HOST}"
+            export API_URL="https://${UI_HOST}"
+            export KEYCLOAK_URL="https://${KEYCLOAK_HOST}"
+            pnpm --filter @mortgage-ai/e2e test:e2e
+          upload_results: 'packages/e2e/blob-report'
+
+      - uses: ./.github/actions/cleanup
+        if: always()
+        with:
+          cleanup_command: 'helm uninstall mortgage-ai --namespace "$NAMESPACE"'
