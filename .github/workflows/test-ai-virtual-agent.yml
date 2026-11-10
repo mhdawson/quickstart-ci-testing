@@ -19,7 +19,8 @@ jobs:
       - uses: ./.github/actions/setup-and-deploy
         timeout-minutes: 60
         with:
-          repo_url: https://github.com/rh-ai-quickstart/ai-virtual-agent
+          repo_url:  https://github.com/mhdawson/ai-virtual-agent
+          ref: fix-weekly-failure
           deploy_command: "make -C deploy/cluster SHELL=/bin/bash install-e2e-openshift"
         env:
           PROD_TOKEN: ${{ secrets.PROD_TOKEN }}
