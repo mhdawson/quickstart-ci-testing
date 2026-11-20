@@ -2,6 +2,8 @@ name: Test - AI Supply Chain Agent
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: '0 4 * * 0'  # Sunday 04:00 UTC
 
 concurrency:
   group: quickstart-ci-tests
@@ -14,52 +16,34 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.8.9"
+          python-version: "3.12"
+
       - uses: ./.github/actions/setup-and-deploy
+        timeout-minutes: 15
         with:
           repo_url: https://github.com/rh-ai-quickstart/ai-supply-chain-agent
-          setup_commands: "make helm-deps"
-          deploy_command: >-
-            helm install supply-chain-dashboard ./helm
-            --namespace $NAMESPACE
-            -f ./helm/values.yaml
-            -f <(cat <<VALEOF
-            global:
-              models:
-                llama-3-2-1b-instruct:
-                  enabled: false
-                external-model:
-                  id: "$LLM_ID"
-                  url: "$LLM_URL"
-                  apiToken: "$LLM_API_TOKEN"
-                  enabled: true
-            llm-service:
-              enabled: false
-            backend:
-              env:
-                LLAMA_STACK_URL: http://llamastack.$NAMESPACE.svc.cluster.local:8321
-            VALEOF
-            )
-            --wait
-            --timeout 10m
+          ref: main
+          submodules: 'true'
+          setup_commands: "cp helm/secrets.example.yaml helm/secrets.yaml"
+          deploy_command: "make install-full"
         env:
           PROD_TOKEN: ${{ secrets.PROD_TOKEN }}
           PROD_SERVER: ${{ secrets.PROD_SERVER }}
-          LLM_ID: ${{ vars.LLM_ID_INFERENCE }}
-          LLM_URL: ${{ vars.LLM_URL_INFERENCE }}
-          LLM_API_TOKEN: ${{ secrets.LLM_API_TOKEN_INFERENCE }}
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
+          MODEL_ID: ${{ vars.LLM_ID_INFERENCE_SCOUT }}
+          MODEL_URL: ${{ vars.LLM_URL_INFERENCE_SCOUT }}
+          API_KEY: ${{ secrets.LLM_API_TOKEN_INFERENCE_SCOUT }}
+          # This namespace is pre-provisioned for the CI service account.
+          HELM_CREATE_NAMESPACE: ""
 
       - uses: ./.github/actions/run-quickstart-tests
+        timeout-minutes: 30
         with:
-          test_command: "make kind-verify-e2e"
-        env:
-          NAMESPACE: quickstart-ci-project-1
-          SKIP_MODEL_TESTS: "false"
-          LLM_API_TOKEN: ${{ secrets.LLM_API_TOKEN_INFERENCE }}
+          test_command: "RUN_MODEL_E2E=1 make e2e-ui"
+          upload_results: "test-results"
 
       - uses: ./.github/actions/cleanup
         if: always()
